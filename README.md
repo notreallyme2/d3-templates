@@ -5,24 +5,13 @@ A set of templates for easily plotting data using d3
 
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+The purpose of these templates is to allow the creation of basic plots (e.g. scatter, coloured scatter, line plot, bar plot) using d3. These can either be used as is, or form the basis for more complex visualisations.
+<br></br>
+The focus is on readability and consistency of the code.
 
-### How do I get set up? ###
+### How to use ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
+1. For each plot type, the data file has the name of the plot, plus `-data.csv`. For example, for `simple-scatter`, the data should be saved as `simple-scatter-data.csv`, in the format of the existing file.
 
 ### Who do I talk to? ###
 
