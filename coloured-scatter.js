@@ -1,5 +1,5 @@
 // set up variables
-var margin = {top: 10, right: 30, bottom: 50, left: 50},	
+var margin = {top: 10, right: 30, bottom: 30, left: 50},	
 	plotWidth = 400,
 	plotHeight = 400,
     canvasWidth = plotWidth + margin.left + margin.right,
@@ -13,19 +13,15 @@ var	figure = d3.select("body")
 		.attr("height", canvasHeight); 
 
 // get the data
-d3.csv("simple-scatter-data.csv", function(error, data) {
+d3.csv("data.csv", function(error, data) {
     globalData = data; // to allow queries from the console
 	data.forEach(function(d) {
-		d[0] = +d[0]
-		d[1] = +d[1];
+		d.x = +d.x
+		d.y = +d.y;
 	});
 
-    // extract variable names (for axis labels)
-    var xVarName = Object.keys(data[0])[2];
-    var yVarName = Object.keys(data[0])[3];
-
     // extract maximum values...
-    // var xMax = d3.max(data, functios(d) { return d.x; });
+    // var xMax = d3.max(data, function(d) { return d.x; });
     // var yMax = d3.max(data, function(d) { return d.y; });
     // or set them manually
     var xMax = 20,
@@ -63,21 +59,6 @@ d3.csv("simple-scatter-data.csv", function(error, data) {
         .attr("transform", "translate(" +  margin.left + ", " + 0 + ")")
         .call(d3.axisLeft(y)
         .ticks(numberOfTicks));
-
-    // add axis labels
-    figure.append("text")
-        .attr("class", "x-label")
-        .attr("text-anchor", "end")
-        .attr( "x", (margin.left + plotWidth / 2 + 5) )
-        .attr( "y", (margin.top + plotHeight + 40) )
-        .text(xVarName);
-
-    figure.append("text")
-        .attr("class", "y-label")
-        .attr("text-anchor", "end")
-        .attr( "x", (margin.left / 2 - 13) )
-        .attr( "y", (margin.top + plotHeight / 2 + 3) )
-        .text(yVarName);
 
 });
 
