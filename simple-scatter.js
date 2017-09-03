@@ -1,83 +1,85 @@
 // set up variables
-var margin = {top: 10, right: 30, bottom: 50, left: 50},	
-	plotWidth = 400,
-	plotHeight = 400,
-    canvasWidth = plotWidth + margin.left + margin.right,
-    canvasHeight = plotHeight + margin.top + margin.bottom,
+// using Mike Bostock's margin convention: https://bl.ocks.org/mbostock/3019563
+var margin = {top: 10, right: 30, bottom: 50, left: 100},	
+	width = 500 - margin.left - margin.right,
+	height = 500 - margin.top - margin.bottom,
+    xLabel = "x label",
+    yLabel = "y label"
+    xLabelOffset = 40, // distance of axis labels from axes
+    yLabelOffset = 60,
     numberOfTicks = 5;
 
 // creates the SVG canvas
-var	figure = d3.select("body")
-	.append("svg")
-		.attr("width", canvasWidth) 
-		.attr("height", canvasHeight); 
+var svg = d3.select("body")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+x = d3.scaleLinear().range([0, width])
+y = d3.scaleLinear().range([height, 0])
 
 // get the data
+// data loading is asynchronous, so entire plot is wrapped in a call to d3.csv
 d3.csv("simple-scatter-data.csv", function(error, data) {
     globalData = data; // to allow queries from the console
-	data.forEach(function(d) {
-		d[0] = +d[0]
-		d[1] = +d[1];
-	});
+    data.forEach(function(d) {
+        d.x = +d.x
+        d.y = +d.y;
+    });
 
-    // extract variable names (for axis labels)
-    var xVarName = Object.keys(data[0])[2];
-    var yVarName = Object.keys(data[0])[3];
-
-    // extract maximum values...
-    // var xMax = d3.max(data, functios(d) { return d.x; });
-    // var yMax = d3.max(data, function(d) { return d.y; });
-    // or set them manually
+    // various options to set scales 
     var xMax = 20,
         yMax = 20;
-
-    x = d3.scaleLinear()
-            .range([margin.left, margin.left + plotWidth])
-            .domain([0, xMax]);
-    y = d3.scaleLinear()
-            .range([margin.top + plotHeight, margin.top])
-            .domain([0, yMax]);
+    // var xMax = d3.max(data, functios(d) { return d.x; });
+    // var yMax = d3.max(data, function(d) { return d.y; });
+    // manually
+    // x.domain([0, xMax]);
+    // y.domain([0, yMax]);
+    // automatically, using d3.extent() and d3.nice()
+    x.domain( d3.extent(data, function(d) { return d.x; })).nice();
+    y.domain( d3.extent(data, function(d) { return d.y; })).nice();
 
     // add the points
-    figure.append("g")
+    svg.append("g")
         .attr("class", "circles")
         .selectAll("circle")
         .data(data)
         .enter()
         .append("circle")
-        .attr("r", 4)
+        .attr("r", 6)
         .attr("cx", function(d) {
             return x(d.x) })
         .attr("cy", function(d) {
             return y(d.y) })
 
     // add the axes
-    figure.append("g")
+    svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(" + 0 + ", " + (margin.top + plotHeight) + ")")
+    .attr("transform", "translate(" + 0 + ", " + height + ")")
         .call(d3.axisBottom(x)
         .ticks(numberOfTicks));
 
-    figure.append("g")
+    svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(" +  margin.left + ", " + 0 + ")")
         .call(d3.axisLeft(y)
         .ticks(numberOfTicks));
 
     // add axis labels
-    figure.append("text")
+    svg.append("text")
         .attr("class", "x-label")
-        .attr("text-anchor", "end")
-        .attr( "x", (margin.left + plotWidth / 2 + 5) )
-        .attr( "y", (margin.top + plotHeight + 40) )
-        .text(xVarName);
+        .attr("text-anchor", "middle")
+        .attr( "x", width / 2 )
+        .attr( "y", (height + xLabelOffset) )
+        .text(xLabel);
 
-    figure.append("text")
+    svg.append("text")
         .attr("class", "y-label")
-        .attr("text-anchor", "end")
-        .attr( "x", (margin.left / 2 - 13) )
-        .attr( "y", (margin.top + plotHeight / 2 + 3) )
-        .text(yVarName);
-
-});
+        .attr("text-anchor", "middle")
+        .attr( "x", -yLabelOffset )
+        .attr( "y", height / 2 )
+        .text(yLabel);
+    }
+);
 

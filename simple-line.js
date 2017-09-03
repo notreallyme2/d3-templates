@@ -9,9 +9,6 @@ var margin = {top: 10, right: 30, bottom: 50, left: 100},
     yLabelOffset = 60,
     numberOfTicks = 5;
 
-// to allow console testing
-var globalData;
-
 // creates the SVG canvas
 var svg = d3.select("body")
     .append("svg")
@@ -25,12 +22,15 @@ y = d3.scaleLinear().range([height, 0])
 
 // get the data
 // data loading is asynchronous, so entire plot is wrapped in a call to d3.csv
-d3.csv("coloured-scatter-data.csv", function(error, data) {
-    globalData = data; // to allow queries from the console
+d3.csv("simple-scatter-data.csv", function(error, data) {
     data.forEach(function(d) {
-        d.x = +d.x;
+        d.x = +d.x
         d.y = +d.y;
     });
+
+    // sort the data by x (ascending)
+    data = data.sort(function (a, b) {return d3.ascending(a.x, b.x); });
+    globalData = data; // to allow queries from the console
 
     // various options to set scales 
     var xMax = 20,
@@ -44,8 +44,9 @@ d3.csv("coloured-scatter-data.csv", function(error, data) {
     x.domain( d3.extent(data, function(d) { return d.x; })).nice();
     y.domain( d3.extent(data, function(d) { return d.y; })).nice();
 
-    var colours = d3.scaleOrdinal(d3.schemeCategory10)
-            .domain( d3.extent(data, function(d) { return(d.group); }));
+    var line = d3.line()
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); });
 
     // add the points
     svg.append("g")
@@ -54,15 +55,27 @@ d3.csv("coloured-scatter-data.csv", function(error, data) {
         .data(data)
         .enter()
         .append("circle")
-        .attr("r", 6)
-        .attr("cx", function(d) { return x(d.x) })
-        .attr("cy", function(d) { return y(d.y) })
-        .attr("fill", function(d) { return colours(d.group) })
+        .attr("fill", "steelblue")
+        .attr("r", 4)
+        .attr("cx", function(d) {
+            return x(d.x) })
+        .attr("cy", function(d) {
+            return y(d.y) })
+
+    // add the line
+    svg.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-width", 2)
+        .attr("d", line);
 
     // add the axes
     svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(" + 0 + ", " + height + ")")
+    .attr("transform", "translate(" + 0 + ", " + height + ")")
         .call(d3.axisBottom(x)
         .ticks(numberOfTicks));
 
@@ -85,19 +98,6 @@ d3.csv("coloured-scatter-data.csv", function(error, data) {
         .attr( "x", -yLabelOffset )
         .attr( "y", height / 2 )
         .text(yLabel);
-
-    // add a legend using http://d3-legend.susielu.com/
-    svg.append("g")
-        .attr("class", "legend")
-        .attr("transform", "translate(30,30)");
-
-    var legend = d3.legendColor()
-        .shapePadding(10)
-        .scale(colours)
-
-    svg.select(".legend")
-        .call(legend);
-
     }
 );
 
