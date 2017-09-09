@@ -47,11 +47,11 @@ d3.csv("coloured-line-data.csv", function(error, data) {
     // var xMax = d3.max(data, function(d) { return d.x1; });
     // var yMax = d3.max(data, function(d) { return d.y1; });
     // manually
-    // x.domain([0, xMax]);
-    // y.domain([0, yMax]);
+    x.domain([0, xMax]);
+    y.domain([0, yMax]);
     // automatically, using d3.extent() and d3.nice()
-    x.domain( d3.extent(data, function(d) { return d.x1; })).nice();
-    y.domain( d3.extent(data, function(d) { return d.y1; })).nice();
+    // x.domain( d3.extent(data, function(d) { return d.x1; })).nice();
+    // y.domain( d3.extent(data, function(d) { return d.y1; })).nice();
 
     // colours for the lines (2 columns for each line)
     colours = d3.scaleOrdinal(d3.schemeCategory10)
