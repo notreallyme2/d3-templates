@@ -10,7 +10,7 @@ var margin = {top: 10, right: 30, bottom: 50, left: 100},
     numberOfTicks = 5;
 
 // to allow console testing
-var globalData;
+var globalData, columnNames, colours;
 
 // creates the SVG canvas
 var svg = d3.select("body")
@@ -23,41 +23,39 @@ var svg = d3.select("body")
 x = d3.scaleLinear().range([0, width])
 y = d3.scaleLinear().range([height, 0])
 
+// utility function that converts a data 'row' to all numeric
+makeNumeric = function(dataObject) {
+    var keyNames = Object.keys(dataObject);
+    var numberOfKeys = keyNames.length;
+    for(i = 0; i < numberOfKeys; i++) {
+        dataObject[keyNames[i]] = +dataObject[keyNames[i]];
+    }
+    return(dataObject);
+}
+
 // get the data
-// data loading is asynchronous, so entire plot is wrapped in a call to d3.csv
-d3.csv("coloured-scatter-data.csv", function(error, data) {
-    globalData = data; // to allow queries from the console
+d3.csv("coloured-line-data.csv", function(error, data) {
+    columnNames = Object.keys(data[0])
     data.forEach(function(d) {
-        d.x = +d.x;
-        d.y = +d.y;
+        d = makeNumeric(d);
     });
+    globalData = data; // to allow queries from the console
 
     // various options to set scales 
     var xMax = 20,
         yMax = 20;
-    // var xMax = d3.max(data, functios(d) { return d.x; });
-    // var yMax = d3.max(data, function(d) { return d.y; });
+    // var xMax = d3.max(data, function(d) { return d.x1; });
+    // var yMax = d3.max(data, function(d) { return d.y1; });
     // manually
     // x.domain([0, xMax]);
     // y.domain([0, yMax]);
     // automatically, using d3.extent() and d3.nice()
-    x.domain( d3.extent(data, function(d) { return d.x; })).nice();
-    y.domain( d3.extent(data, function(d) { return d.y; })).nice();
+    x.domain( d3.extent(data, function(d) { return d.x1; })).nice();
+    y.domain( d3.extent(data, function(d) { return d.y1; })).nice();
 
-    var colours = d3.scaleOrdinal(d3.schemeCategory10)
-            .domain( d3.extent(data, function(d) { return(d.group); }));
-
-    // add the points
-    svg.append("g")
-        .attr("class", "circles")
-        .selectAll("circle")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("r", 6)
-        .attr("cx", function(d) { return x(d.x) })
-        .attr("cy", function(d) { return y(d.y) })
-        .attr("fill", function(d) { return colours(d.group) })
+    // colours for the lines (2 columns for each line)
+    colours = d3.scaleOrdinal(d3.schemeCategory10)
+            .domain( 0, columnNames.length/2 );
 
     // add the axes
     svg.append("g")
@@ -86,6 +84,46 @@ d3.csv("coloured-scatter-data.csv", function(error, data) {
         .attr( "y", height / 2 )
         .text(yLabel);
 
+
+    // a function to plot the data
+    plotTheData = function(xName, yName, lineColour) {
+        // sort for this x ascending
+        data = data.sort(function (a, b) {return d3.ascending(a[xName], b[xName]); });
+
+        var line = d3.line()
+            .x(function(d) { return x(d[xName]); })
+            .y(function(d) { return y(d[yName]); });
+
+        // add the points
+        svg.append("g")
+            .attr("class", "circles")
+            .selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("fill", lineColour)
+            .attr("r", 4)
+            .attr("cx", function(d) {
+                return x(d[xName]) })
+            .attr("cy", function(d) {
+                return y(d[yName]) })
+
+        // add the line
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", lineColour)
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+    }
+   
+    // finally, plot all the lines
+    for(i=0; i<columnNames.length/2; i++){
+        plotTheData(columnNames[i*2], columnNames[i*2+1], colours(i));
+    }
+
     // add a legend using http://d3-legend.susielu.com/
     svg.append("g")
         .attr("class", "legend")
@@ -97,7 +135,6 @@ d3.csv("coloured-scatter-data.csv", function(error, data) {
 
     svg.select(".legend")
         .call(legend);
-
     }
 );
 
